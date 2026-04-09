@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+requests
+sqlalchemy
+pymysql
+pandas
+google-genai
+python-dotenv
+cryptography
+scikit-learn
+chromadb
+sentence-transformers
+prometheus-fastapi-instrumentator
+loguru
+python-multipart
+openai
+
