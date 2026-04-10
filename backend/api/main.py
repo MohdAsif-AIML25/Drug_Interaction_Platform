@@ -117,9 +117,22 @@ async def analyse(request: DrugAnalyseRequest):
     # Fetch product details for drug_a and drug_b
     from .db import SessionLocal
     from .models import Product
+    from sqlalchemy import or_
+
     db = SessionLocal()
-    drug_a_info = db.query(Product).filter(Product.sub_category.ilike(f"%{drug_a}%")).first()
-    drug_b_info = db.query(Product).filter(Product.sub_category.ilike(f"%{drug_b}%")).first()
+    drug_a_info = db.query(Product).filter(
+        or_(
+            Product.salt_composition.ilike(f"%{drug_a}%"),
+            Product.product_name.ilike(f"%{drug_a}%")
+        )
+    ).first()
+    
+    drug_b_info = db.query(Product).filter(
+        or_(
+            Product.salt_composition.ilike(f"%{drug_b}%"),
+            Product.product_name.ilike(f"%{drug_b}%")
+        )
+    ).first()
     db.close()
 
     drug_a_data = {
