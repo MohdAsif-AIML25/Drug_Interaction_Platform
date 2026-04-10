@@ -30,6 +30,11 @@ def index_data(csv_paths):
     if collection is None:
         return
 
+    current_count = collection.count()
+    if current_count > 0:
+        logger.info(f"Vector DB already has {current_count} documents. Skipping computationally expensive re-indexing at startup.")
+        return
+
     for path in csv_paths:
         if not os.path.exists(path):
             continue

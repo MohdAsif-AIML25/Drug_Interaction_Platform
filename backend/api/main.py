@@ -51,18 +51,16 @@ async def startup_event():
 
         data_dir = None
         for candidate in candidate_dirs:
-            if candidate.exists():
+            if (candidate / "eval copy.csv").exists() or (candidate / "test copy.csv").exists():
                 data_dir = candidate
                 break
 
         if data_dir is None:
-            data_dir = base_dir / "data"
+            data_dir = base_dir.parent / "data"
 
         paths = [
             data_dir / "eval copy.csv",
             data_dir / "test copy.csv",
-            data_dir / "eval.csv",
-            data_dir / "test.csv",
         ]
 
         existing_paths = [str(p) for p in paths if p.exists()]
@@ -116,6 +114,26 @@ async def analyse(request: DrugAnalyseRequest):
     context_docs = query_interactions(drug_a, drug_b)
     context_text = "\n".join(context_docs)
 
+    # Fetch product details for drug_a and drug_b
+    from .db import SessionLocal
+    from .models import Product
+    db = SessionLocal()
+    drug_a_info = db.query(Product).filter(Product.sub_category.ilike(f"%{drug_a}%")).first()
+    drug_b_info = db.query(Product).filter(Product.sub_category.ilike(f"%{drug_b}%")).first()
+    db.close()
+
+    drug_a_data = {
+        "product_name": drug_a_info.product_name if drug_a_info else "N/A",
+        "sub_category": drug_a_info.sub_category if drug_a_info else drug_a,
+        "side_effects": drug_a_info.side_effects if drug_a_info else "N/A"
+    }
+
+    drug_b_data = {
+        "product_name": drug_b_info.product_name if drug_b_info else "N/A",
+        "sub_category": drug_b_info.sub_category if drug_b_info else drug_b,
+        "side_effects": drug_b_info.side_effects if drug_b_info else "N/A"
+    }
+
     # 3. Save event info (Empty events since we removed FDA)
     try:
         save_event(drug_a, drug_b, [])
@@ -133,10 +151,19 @@ async def analyse(request: DrugAnalyseRequest):
             }
         }) + "\n\n"
         
-        # B: Yield empty events list (To maintain frontend compatibility)
+        # B: Yield drug product info
+        yield json.dumps({
+            "type": "drug_info",
+            "data": {
+                "drug_a": drug_a_data,
+                "drug_b": drug_b_data
+            }
+        }) + "\n\n"
+
+        # C: Yield empty events list (To maintain frontend compatibility)
         yield json.dumps({"type": "events", "data": []}) + "\n\n"
         
-        # C: Stream Gemini analysis using CSV context
+        # D: Stream Gemini analysis using CSV context
         prompt_enhancement = f"ML Severity Predicted: {severity}. Context from CSV data: {context_text}. "
         prompt_enhancement += "Requirement: Cover mechanism, consequences, action, and confidence."
         

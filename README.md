@@ -40,24 +40,35 @@ drug-interaction-platform/
 ## 🛠️ Step-by-Step Setup (Local Development)
 
 ### 1. Database Setup
-1. Open **MySQL Workbench** or your preferred SQL client.
-2. Create a new database named `drug_interaction`.
-3. The schema will be automatically created, or you can manually apply `database/init.sql`.
+The easiest way to run the database for local development without conflicts is via Docker:
+```powershell
+docker-compose up db -d
+```
+This isolates MySQL on port 3307 and automatically applies the `init.sql` schema.
 
 ### 2. Environment Configuration
-Create or update the `.env` file in the root of the project:
+Create or update the `.env` file in the root of the project to match your preferred running environment:
 ```env
-# Groq API Configuration for Llama 3.1
-GROQ_API_KEY=your_groq_api_key_here
-
-# Database Configuration
+# ==========================================
+# DATABASE SETTINGS
+# ==========================================
 MYSQL_USER=root
 MYSQL_PASSWORD=your_mysql_password
 MYSQL_DB=drug_interaction
 
-# Note: For @ in password, use %40 in the DATABASE_URL below
-# Local connection string example:
-DATABASE_URL=mysql+pymysql://root:password_here@localhost:3306/drug_interaction
+# --- OPTION 1: RUNNING LOCALLY (UNCOMMENTED BY DEFAULT) ---
+# Use this when running 'npm run dev' and 'uvicorn' manually.
+# Ensure you start the Docker DB first: `docker compose up db -d`
+MYSQL_HOST=localhost
+MYSQL_PORT=3307
+DATABASE_URL=mysql+pymysql://root:password_here@localhost:3307/drug_interaction
+
+# --- OPTION 2: RUNNING FULLY IN DOCKER (COMMENTED OUT) ---
+# Uncomment these if you ever want your .env to strictly point to the internal Docker network.
+# (Note: docker-compose.yml already overrides these automatically for you)
+# MYSQL_HOST=db
+# MYSQL_PORT=3306
+# DATABASE_URL=mysql+pymysql://root:password_here@db:3306/drug_interaction
 ```
 
 ### 3. Backend Setup

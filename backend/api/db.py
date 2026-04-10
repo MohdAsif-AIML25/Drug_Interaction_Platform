@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from urllib.parse import quote_plus
 
 # Load .env if not already loaded (useful for local runs)
-load_dotenv()
+load_dotenv(override=True)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 

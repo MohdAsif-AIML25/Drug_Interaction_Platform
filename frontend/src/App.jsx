@@ -17,6 +17,7 @@ const App = () => {
   const [events, setEvents] = useState([]);
   const [analysisText, setAnalysisText] = useState('');
   const [mlResult, setMlResult] = useState(null);
+  const [drugInfo, setDrugInfo] = useState(null);
   const [history, setHistory] = useState([]);
   const [streaming, setStreaming] = useState(false);
   
@@ -43,6 +44,7 @@ const App = () => {
     setEvents([]);
     setAnalysisText('');
     setMlResult(null);
+    setDrugInfo(null);
 
     try {
       const response = await fetch('http://localhost:8000/analyse', {
@@ -78,6 +80,8 @@ const App = () => {
               });
             } else if (jsonPart.type === 'events') {
               setEvents(jsonPart.data);
+            } else if (jsonPart.type === 'drug_info') {
+              setDrugInfo(jsonPart.data);
             } else if (jsonPart.type === 'token') {
               setAnalysisText((prev) => prev + jsonPart.data);
             } else if (jsonPart.type === 'error') {
@@ -211,6 +215,22 @@ const App = () => {
                   </div>
                 )}
               </div>
+
+              {/* Drug Information Cards */}
+              {drugInfo && (
+                <div className="drug-info-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                  <div className="severity-card hover-card" style={{ padding: '1rem', background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
+                    <h4 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>{drugInfo.drug_a.sub_category}</h4>
+                    <p style={{fontSize: '0.85rem', marginBottom: '0.3rem'}}><strong>Product:</strong> {drugInfo.drug_a.product_name}</p>
+                    <p style={{fontSize: '0.85rem'}}><strong>Side Effects:</strong> {drugInfo.drug_a.side_effects}</p>
+                  </div>
+                  <div className="severity-card hover-card" style={{ padding: '1rem', background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
+                    <h4 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>{drugInfo.drug_b.sub_category}</h4>
+                    <p style={{fontSize: '0.85rem', marginBottom: '0.3rem'}}><strong>Product:</strong> {drugInfo.drug_b.product_name}</p>
+                    <p style={{fontSize: '0.85rem'}}><strong>Side Effects:</strong> {drugInfo.drug_b.side_effects}</p>
+                  </div>
+                </div>
+              )}
 
               {/* Streaming Panel */}
               <div className="streaming-panel">
